@@ -1,20 +1,25 @@
 ---
-export const prerender = true;
-import { getCollection } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
 
-const posts = await getCollection('posts');
+export const prerender = true;
+
+const posts = await getCollection("posts");
 ---
 
 <Layout title="Webmentions Demo">
-  <link rel="webmention" href="/webmention" slot="head" />
+    <link rel="webmention" href="/webmention" slot="head" />
 
-  <h1>Webmentions Demo</h1>
-  <p class="muted">A simple self-hosted webmention server.</p>
+    <h1>Webmentions Demo</h1>
+    <p class="muted">A simple self-hosted webmention server.</p>
 
-  <ul>
-    {posts.map((p) => (
-      <li><a href={`/posts/${p.id}/`}>{p.data.title}</a></li>
-    ))}
-  </ul>
+    <ul>
+        {
+            posts.map((p) => (
+                <li>
+                    <a href={`/posts/${p.id}/`}>{p.data.title}</a>
+                </li>
+            ))
+        }
+    </ul>
 </Layout>

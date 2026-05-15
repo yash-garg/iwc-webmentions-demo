@@ -1,23 +1,22 @@
 {
-	"compatibility_date": "2026-05-15",
-	"compatibility_flags": [
-		"global_fetch_strictly_public"
-	],
-	"name": "webmentions-demo",
-	"main": "@astrojs/cloudflare/entrypoints/server",
-	"assets": {
-		"directory": "./dist",
-		"binding": "ASSETS"
-	},
-	"observability": {
-		"enabled": true
-	},
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "webmentions-demo",
-			"database_id": "cbf856ea-c169-405d-816b-47237cc8d3f3",
-			"migrations_dir": "./migrations"
-		}
-	]
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "name": "iwc",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "webmentions-demo",
+      "database_id": "cbf856ea-c169-405d-816b-47237cc8d3f3",
+      "migrations_dir": "./migrations",
+    },
+  ],
 }

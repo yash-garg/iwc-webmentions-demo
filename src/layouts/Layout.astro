@@ -1,153 +1,230 @@
 ---
 interface Props {
-  title: string;
+    title: string;
 }
 const { title } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{title}</title>
-    <slot name="head" />
-    <style is:global>
-      /* ── Reset ── */
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+        <slot name="head" />
+        <style is:global>
+            /* ── Reset ── */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-      /* ── Base ── */
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        font-size: 22px;
-        line-height: 1.6;
-        color: #1a1a1a;
-        background: #fff;
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 2.5rem 1.5rem;
-      }
+            /* ── Base ── */
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                font-size: 22px;
+                line-height: 1.6;
+                color: #1a1a1a;
+                background: #fff;
+                max-width: 720px;
+                margin: 0 auto;
+                padding: 2.5rem 1.5rem;
+            }
 
-      h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
-      h2 { font-size: 1.25rem; font-weight: 600; margin: 1.75rem 0 0.75rem; }
-      p  { margin-bottom: 0.75rem; }
+            h1 {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+            }
+            h2 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 1.75rem 0 0.75rem;
+            }
+            p {
+                margin-bottom: 0.75rem;
+            }
 
-      a       { color: #0066cc; text-decoration: none; }
-      a:hover { text-decoration: underline; }
+            a {
+                color: #0066cc;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
 
-      code {
-        font-family: ui-monospace, monospace;
-        font-size: 0.85em;
-        background: #f4f4f4;
-        padding: 0.1em 0.35em;
-        border-radius: 3px;
-      }
+            code {
+                font-family: ui-monospace, monospace;
+                font-size: 0.85em;
+                background: #f4f4f4;
+                padding: 0.1em 0.35em;
+                border-radius: 3px;
+            }
 
-      hr { border: none; border-top: 1px solid #e5e5e5; margin: 1.75rem 0; }
+            hr {
+                border: none;
+                border-top: 1px solid #e5e5e5;
+                margin: 1.75rem 0;
+            }
 
-      /* ── Utilities ── */
-      .muted { color: #888; font-size: 0.875rem; }
-      .back  { display: inline-block; margin-bottom: 1.5rem; font-size: 0.875rem; }
+            /* ── Utilities ── */
+            .muted {
+                color: #888;
+                font-size: 0.875rem;
+            }
+            .back {
+                display: inline-block;
+                margin-bottom: 1.5rem;
+                font-size: 0.875rem;
+            }
 
-      /* ── Mention list ── */
-      .mention-list {
-        list-style: none;
-        margin: 1rem 0 2rem;
-      }
+            /* ── Mention list ── */
+            .mention-list {
+                list-style: none;
+                margin: 1rem 0 2rem;
+            }
 
-      .mention {
-        display: flex;
-        gap: 0.75rem;
-        align-items: flex-start;
-        padding: 0.85rem 0;
-        border-bottom: 1px solid #f0f0f0;
-      }
-      .mention:last-child { border-bottom: none; }
+            .mention {
+                display: flex;
+                gap: 0.75rem;
+                align-items: flex-start;
+                padding: 0.85rem 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .mention:last-child {
+                border-bottom: none;
+            }
 
-      .mention-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #e0e0e0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #555;
-        flex-shrink: 0;
-      }
+            .mention-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #e0e0e0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #555;
+                flex-shrink: 0;
+            }
 
-      .mention-body    { min-width: 0; }
-      .mention-header  { display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
-      .mention-author  { font-weight: 600; color: #1a1a1a; }
-      .mention-property { font-size: 0.8rem; color: #888; }
-      .mention-content { font-size: 0.9rem; color: #444; margin: 0.2rem 0; }
+            .mention-body {
+                min-width: 0;
+            }
+            .mention-header {
+                display: flex;
+                align-items: baseline;
+                gap: 0.4rem;
+                flex-wrap: wrap;
+                margin-bottom: 0.2rem;
+            }
+            .mention-author {
+                font-weight: 600;
+                color: #1a1a1a;
+            }
+            .mention-property {
+                font-size: 0.8rem;
+                color: #888;
+            }
+            .mention-content {
+                font-size: 0.9rem;
+                color: #444;
+                margin: 0.2rem 0;
+            }
 
-      .mention-source {
-        font-size: 0.75rem;
-        color: #aaa;
-        margin-top: 0.25rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .mention-source a { color: #aaa; }
+            .mention-source {
+                font-size: 0.75rem;
+                color: #aaa;
+                margin-top: 0.25rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .mention-source a {
+                color: #aaa;
+            }
 
-      /* ── JSON block ── */
-      .json-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #aaa;
-        margin-bottom: 0.5rem;
-      }
+            /* ── JSON block ── */
+            .json-label {
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: #aaa;
+                margin-bottom: 0.5rem;
+            }
 
-      .json-block {
-        background: #f8f8f8;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        padding: 1rem;
-        overflow-x: auto;
-        font-family: ui-monospace, monospace;
-        font-size: 0.775rem;
-        line-height: 1.55;
-      }
+            .json-block {
+                background: #f8f8f8;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                padding: 1rem;
+                overflow-x: auto;
+                font-family: ui-monospace, monospace;
+                font-size: 0.775rem;
+                line-height: 1.55;
+            }
 
-      /* ── Send form ── */
-      .send-form    { display: grid; gap: 0.75rem; }
-      .form-field   { display: grid; gap: 0.3rem; }
-      .form-label   { font-size: 0.8rem; font-weight: 500; color: #555; }
+            /* ── Send form ── */
+            .send-form {
+                display: grid;
+                gap: 0.75rem;
+            }
+            .form-field {
+                display: grid;
+                gap: 0.3rem;
+            }
+            .form-label {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: #555;
+            }
 
-      .form-input {
-        width: 100%;
-        padding: 0.4rem 0.65rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.9rem;
-        font-family: inherit;
-        background: #fff;
-      }
-      .form-input:read-only { background: #f9f9f9; color: #888; }
-      .form-input:focus     { outline: 2px solid #0066cc; outline-offset: 1px; }
+            .form-input {
+                width: 100%;
+                padding: 0.4rem 0.65rem;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                font-family: inherit;
+                background: #fff;
+            }
+            .form-input:read-only {
+                background: #f9f9f9;
+                color: #888;
+            }
+            .form-input:focus {
+                outline: 2px solid #0066cc;
+                outline-offset: 1px;
+            }
 
-      .form-submit {
-        justify-self: start;
-        padding: 0.4rem 1.1rem;
-        background: #0066cc;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        font-size: 0.875rem;
-        cursor: pointer;
-      }
-      .form-submit:hover { background: #0052a3; }
+            .form-submit {
+                justify-self: start;
+                padding: 0.4rem 1.1rem;
+                background: #0066cc;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 0.875rem;
+                cursor: pointer;
+            }
+            .form-submit:hover {
+                background: #0052a3;
+            }
 
-      .endpoint-note { font-size: 0.8rem; color: #888; margin-bottom: 1rem; }
-    </style>
-  </head>
-  <body>
-    <slot />
-  </body>
+            .endpoint-note {
+                font-size: 0.8rem;
+                color: #888;
+                margin-bottom: 1rem;
+            }
+        </style>
+    </head>
+    <body>
+        <slot />
+    </body>
 </html>
