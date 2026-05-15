@@ -1,0 +1,27 @@
+src/pages/mentions/index.astro
+  264be21e18da4c1d 4
+src/pages/index.astro
+  264be21e18da4c1d 4
+src/pages/posts/[slug].astro
+  264be21e18da4c1d 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "0a74b1a693e0c30f3e2d697a3cc8f2fc86723539",
+  "prompts": {
+    "264be21e18da4c1d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1d3466a33ffee4buEUqqPCiwdQ",
+        "model": "anthropic/claude-sonnet-4-6"
+      },
+      "human_author": "Yash-Garg",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 5,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
