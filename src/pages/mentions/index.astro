@@ -95,9 +95,7 @@ if (target) {
         target && mentions.length > 0 && (
             <>
                 <p class="json-label">Raw JSON</p>
-                <pre class="json-block">
-                    {JSON.stringify(mentions, null, 2)}
-                </pre>
+                <pre class="json-block" set:html={JSON.stringify(mentions, null, 2)} />
             </>
         )
     }
