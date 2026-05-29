@@ -1,7 +1,9 @@
 {
   "compatibility_date": "2026-05-15",
-  "compatibility_flags": ["global_fetch_strictly_public"],
-  "name": "webmentions-worker",
+  "compatibility_flags": [
+    "global_fetch_strictly_public"
+  ],
+  "name": "webmentions",
   "main": "src/index.ts",
   "observability": {
     "enabled": true
@@ -9,8 +11,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "webmentions-worker",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_name": "webmentions",
+      "database_id": "ecaa9527-34ac-4275-bfca-70c29b743925",
       "migrations_dir": "./migrations"
     }
   ]
