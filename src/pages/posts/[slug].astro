@@ -16,9 +16,7 @@ const { Content } = await render(post);
 const { slug } = Astro.params;
 const targetPath = `/posts/${slug}/`;
 
-// Worker URL — set PUBLIC_WEBMENTION_ENDPOINT in your .env or Cloudflare Pages settings
-// e.g. PUBLIC_WEBMENTION_ENDPOINT=https://webmentions-worker.yourname.workers.dev
-const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
+const wmEndpoint = "https://webmentions.rexx.workers.dev";
 const targetUrl = `${import.meta.env.SITE ?? ""}${targetPath}`;
 ---
 

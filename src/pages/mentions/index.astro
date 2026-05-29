@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 
-const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
+const wmEndpoint = "https://webmentions.rexx.workers.dev";
 ---
 
 <Layout title="Webmentions">
@@ -33,14 +33,9 @@ const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
     if (!target) {
         status.textContent = "No target specified.";
     } else {
-        const apiUrl = wmEndpoint
-            ? `${wmEndpoint}/mentions?target=${encodeURIComponent(target)}`
-            : null;
+        const apiUrl = `${wmEndpoint}/mentions?target=${encodeURIComponent(target)}`;
 
-        if (!apiUrl) {
-            status.textContent = "No webmention endpoint configured (PUBLIC_WEBMENTION_ENDPOINT not set).";
-        } else {
-            fetch(apiUrl)
+        fetch(apiUrl)
                 .then((r) => r.json())
                 .then((mentions) => {
                     status.textContent = `${mentions.length} mention${mentions.length !== 1 ? "s" : ""} for ${target}`;
@@ -114,6 +109,5 @@ const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
                     status.textContent = "Failed to load webmentions.";
                     console.error(err);
                 });
-        }
     }
 </script>
