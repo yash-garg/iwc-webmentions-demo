@@ -1,102 +1,89 @@
 ---
-import { env } from "cloudflare:workers";
 import Layout from "../../layouts/Layout.astro";
 
-export const prerender = false;
-
-interface Mention {
-    id: number;
-    source: string;
-    target_path: string;
-    wm_property: string | null;
-    author_name: string | null;
-    author_url: string | null;
-    content_text: string | null;
-    received_at: string;
-}
-
-const PROPERTY_LABEL: Record<string, string> = {
-    "like-of": "♥ liked this",
-    "repost-of": "↺ reposted this",
-    "in-reply-to": "↩ replied",
-    "mention-of": "✦ mentioned this",
-    "bookmark-of": "⊹ bookmarked this",
-};
-
-const target = Astro.url.searchParams.get("target") ?? "";
-let mentions: Mention[] = [];
-
-if (target) {
-    const result = await env.DB.prepare(
-        "SELECT * FROM webmentions WHERE target_path = ? ORDER BY received_at DESC",
-    )
-        .bind(target)
-        .all<Mention>();
-    mentions = result.results;
-}
+const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
 ---
 
 <Layout title="Webmentions">
     <a class="back" href="/">← Home</a>
-
     <h1>Webmentions</h1>
-
-    {!target && <p class="muted">No target specified.</p>}
-
-    {
-        target && (
-            <p class="muted">
-                {mentions.length} mention{mentions.length !== 1 ? "s" : ""} for{" "}
-                <code>{target}</code>
-            </p>
-        )
-    }
-
-    {target && mentions.length === 0 && <p>No webmentions yet.</p>}
-
-    {
-        mentions.length > 0 && (
-            <ul class="mention-list">
-                {mentions.map((m) => (
-                    <li class="mention">
-                        <div class="mention-avatar">
-                            {(m.author_name ?? "?").charAt(0).toUpperCase()}
-                        </div>
-                        <div class="mention-body">
-                            <div class="mention-header">
-                                <a
-                                    class="mention-author"
-                                    href={m.author_url ?? m.source}
-                                >
-                                    {m.author_name ??
-                                        new URL(m.source).hostname}
-                                </a>
-                                <span class="mention-property">
-                                    {PROPERTY_LABEL[m.wm_property ?? ""] ??
-                                        m.wm_property}
-                                </span>
-                            </div>
-                            {m.content_text && (
-                                <p class="mention-content">{m.content_text}</p>
-                            )}
-                            <div class="mention-source">
-                                <a href={m.source}>{m.source}</a>
-                                {" · "}
-                                {m.received_at} UTC
-                            </div>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        )
-    }
-
-    {
-        target && mentions.length > 0 && (
-            <>
-                <p class="json-label">Raw JSON</p>
-                <pre class="json-block" set:html={JSON.stringify(mentions, null, 2)} />
-            </>
-        )
-    }
+    <p class="muted" id="status">Loading…</p>
+    <ul class="mention-list" id="mention-list"></ul>
+    <div id="json-section" style="display:none">
+        <p class="json-label">Raw JSON</p>
+        <pre class="json-block" id="json-block"></pre>
+    </div>
 </Layout>
+
+<script define:vars={{ wmEndpoint }}>
+    const PROPERTY_LABEL = {
+        "like-of": "♥ liked this",
+        "repost-of": "↺ reposted this",
+        "in-reply-to": "↩ replied",
+        "mention-of": "✦ mentioned this",
+        "bookmark-of": "⊹ bookmarked this",
+    };
+
+    const target = new URLSearchParams(location.search).get("target") ?? "";
+    const status = document.getElementById("status");
+    const list = document.getElementById("mention-list");
+    const jsonSection = document.getElementById("json-section");
+    const jsonBlock = document.getElementById("json-block");
+
+    if (!target) {
+        status.textContent = "No target specified.";
+    } else {
+        const apiUrl = wmEndpoint
+            ? `${wmEndpoint}/mentions?target=${encodeURIComponent(target)}`
+            : null;
+
+        if (!apiUrl) {
+            status.textContent = "No webmention endpoint configured (PUBLIC_WEBMENTION_ENDPOINT not set).";
+        } else {
+            fetch(apiUrl)
+                .then((r) => r.json())
+                .then((mentions) => {
+                    status.textContent = `${mentions.length} mention${mentions.length !== 1 ? "s" : ""} for ${target}`;
+
+                    if (mentions.length === 0) {
+                        const p = document.createElement("p");
+                        p.textContent = "No webmentions yet.";
+                        list.after(p);
+                        return;
+                    }
+
+                    for (const m of mentions) {
+                        const hostname = (() => {
+                            try { return new URL(m.source).hostname; } catch { return m.source; }
+                        })();
+                        const initial = (m.author_name ?? "?").charAt(0).toUpperCase();
+                        const label = PROPERTY_LABEL[m.wm_property] ?? m.wm_property ?? "";
+
+                        const li = document.createElement("li");
+                        li.className = "mention";
+                        li.innerHTML = `
+                            <div class="mention-avatar">${initial}</div>
+                            <div class="mention-body">
+                                <div class="mention-header">
+                                    <a class="mention-author" href="${m.author_url ?? m.source}">${m.author_name ?? hostname}</a>
+                                    <span class="mention-property">${label}</span>
+                                </div>
+                                ${m.content_text ? `<p class="mention-content">${m.content_text}</p>` : ""}
+                                <div class="mention-source">
+                                    <a href="${m.source}">${m.source}</a>
+                                    · ${m.received_at} UTC
+                                </div>
+                            </div>`;
+                        list.appendChild(li);
+                    }
+
+                    jsonSection.style.display = "";
+                    jsonBlock.textContent = JSON.stringify(mentions, null, 2);
+                })
+                .catch((err) => {
+                    status.textContent = "Failed to load webmentions.";
+                    console.error(err);
+                });
+        }
+    }
+</script>

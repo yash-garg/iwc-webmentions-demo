@@ -1,22 +1,30 @@
 ---
-import { getEntry, render } from "astro:content";
+import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 
-export const prerender = false;
+export async function getStaticPaths() {
+    const posts = await getCollection("posts");
+    return posts.map((post) => ({
+        params: { slug: post.id },
+        props: { post },
+    }));
+}
 
-const { slug } = Astro.params;
-const post = slug ? await getEntry("posts", slug) : undefined;
-if (!post) return Astro.redirect("/");
-
+const { post } = Astro.props;
 const { Content } = await render(post);
 
+const { slug } = Astro.params;
 const targetPath = `/posts/${slug}/`;
-const targetUrl = `${Astro.url.origin}${targetPath}`;
+
+// Worker URL — set PUBLIC_WEBMENTION_ENDPOINT in your .env or Cloudflare Pages settings
+// e.g. PUBLIC_WEBMENTION_ENDPOINT=https://webmentions-worker.yourname.workers.dev
+const wmEndpoint = import.meta.env.PUBLIC_WEBMENTION_ENDPOINT ?? "";
+const targetUrl = `${import.meta.env.SITE ?? ""}${targetPath}`;
 ---
 
 <Layout title={post.data.title}>
     <fragment slot="head">
-        <link rel="webmention" href="/webmention" />
+        <link rel="webmention" href={`${wmEndpoint}/webmention`} />
     </fragment>
 
     <a class="back" href="/">← Home</a>
@@ -34,12 +42,12 @@ const targetUrl = `${Astro.url.origin}${targetPath}`;
 
     <h2>Send a test webmention</h2>
     <p class="endpoint-note">
-        POST to <code>/webmention</code> with <code>source</code> and <code
+        POST to <code>{wmEndpoint}/webmention</code> with <code>source</code> and <code
             >target</code
         >.
     </p>
 
-    <form class="send-form" method="POST" action="/webmention">
+    <form class="send-form" method="POST" action={`${wmEndpoint}/webmention`}>
         <div class="form-field">
             <label class="form-label" for="source">Source URL</label>
             <input
