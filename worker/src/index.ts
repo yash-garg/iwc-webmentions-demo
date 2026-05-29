@@ -10,9 +10,17 @@ export interface Env {
   SITE_URL?: string;
 }
 
-const CORS_HEADERS = {
+// CORS headers for public read endpoints (allow any origin)
+const READ_CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+// CORS headers for write/mutation endpoints (tighten in production via SITE_URL)
+const WRITE_CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
@@ -37,6 +45,11 @@ const FAKE_CONTENT: Partial<Record<string, string>> = {
   "mention-of": "I referenced this article in my latest post — great resource.",
 };
 
+/**
+ * Demo stub: generates plausible but fake author/type data from the source URL.
+ * A real webmention receiver would fetch the source page and parse microformats2
+ * (h-entry) to extract the actual author name, photo, and interaction type.
+ */
 function fakeData(sourceUrl: URL) {
   const seed = hashStr(sourceUrl.hostname + sourceUrl.pathname);
   const wm_property = WM_PROPERTIES[seed % WM_PROPERTIES.length]!;
@@ -57,7 +70,7 @@ async function handlePost(request: Request, env: Env): Promise<Response> {
   if (!contentType.includes("application/x-www-form-urlencoded")) {
     return new Response("Content-Type must be application/x-www-form-urlencoded", {
       status: 400,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
   }
 
@@ -71,7 +84,7 @@ async function handlePost(request: Request, env: Env): Promise<Response> {
   ) {
     return new Response("source and target are required", {
       status: 400,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
   }
 
@@ -83,21 +96,32 @@ async function handlePost(request: Request, env: Env): Promise<Response> {
   } catch {
     return new Response("source and target must be valid URLs", {
       status: 400,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
   }
 
   if (!["http:", "https:"].includes(sourceUrl.protocol)) {
     return new Response("source must be an http or https URL", {
       status: 400,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
   }
   if (!["http:", "https:"].includes(targetUrl.protocol)) {
     return new Response("target must be an http or https URL", {
       status: 400,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
+  }
+
+  // Validate target belongs to this site
+  if (env.SITE_URL) {
+    const allowedHost = new URL(env.SITE_URL).hostname;
+    if (targetUrl.hostname !== allowedHost) {
+      return new Response("target must point to this site", {
+        status: 400,
+        headers: WRITE_CORS_HEADERS,
+      });
+    }
   }
 
   const targetPath = targetUrl.pathname;
@@ -124,7 +148,7 @@ async function handlePost(request: Request, env: Env): Promise<Response> {
     console.error("D1 insert failed:", e);
     return new Response("Internal Server Error", {
       status: 500,
-      headers: CORS_HEADERS,
+      headers: WRITE_CORS_HEADERS,
     });
   }
 
@@ -138,7 +162,7 @@ async function handlePost(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  return new Response("Accepted", { status: 202, headers: CORS_HEADERS });
+  return new Response("Accepted", { status: 202, headers: WRITE_CORS_HEADERS });
 }
 
 async function handleGetMentions(url: URL, env: Env): Promise<Response> {
@@ -146,19 +170,28 @@ async function handleGetMentions(url: URL, env: Env): Promise<Response> {
   if (!target) {
     return new Response(JSON.stringify({ error: "target query param required" }), {
       status: 400,
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+      headers: { "Content-Type": "application/json", ...READ_CORS_HEADERS },
     });
   }
 
-  const result = await env.DB.prepare(
-    "SELECT * FROM webmentions WHERE target_path = ? ORDER BY received_at DESC"
-  )
-    .bind(target)
-    .all();
+  let result: D1Result;
+  try {
+    result = await env.DB.prepare(
+      "SELECT source, target_path, wm_property, author_name, author_url, author_photo, content_text, published, received_at FROM webmentions WHERE target_path = ? ORDER BY received_at DESC LIMIT 100"
+    )
+      .bind(target)
+      .all();
+  } catch (e) {
+    console.error("D1 query failed:", e);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...READ_CORS_HEADERS },
+    });
+  }
 
   return new Response(JSON.stringify(result.results), {
     status: 200,
-    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+    headers: { "Content-Type": "application/json", ...READ_CORS_HEADERS },
   });
 }
 
@@ -168,7 +201,7 @@ export default {
 
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: READ_CORS_HEADERS });
     }
 
     // POST /webmention — receive a webmention
@@ -180,7 +213,7 @@ export default {
     if (request.method === "GET" && url.pathname === "/webmention") {
       return new Response(
         "Webmention endpoint. Send a POST request with source and target fields.",
-        { status: 200, headers: { Allow: "POST, GET", ...CORS_HEADERS } }
+        { status: 200, headers: { Allow: "POST, GET", ...READ_CORS_HEADERS } }
       );
     }
 
@@ -189,6 +222,6 @@ export default {
       return handleGetMentions(url, env);
     }
 
-    return new Response("Not Found", { status: 404, headers: CORS_HEADERS });
+    return new Response("Not Found", { status: 404, headers: READ_CORS_HEADERS });
   },
 } satisfies ExportedHandler<Env>;
