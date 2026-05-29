@@ -95,7 +95,6 @@ You'll get a URL like `https://webmentions-worker.yourname.workers.dev`.
 Set the `PUBLIC_WEBMENTION_ENDPOINT` environment variable to your worker URL, then:
 
 ```bash
-pnpm build
 pnpm deploy
 ```
 
