@@ -1,7 +1,9 @@
-// Webmention receiver + JSON API
+// Webmention receiver + sender + JSON API
 // POST /webmention  — receive a webmention, store in D1
 // GET  /webmention  — describe the endpoint
 // GET  /mentions    — return JSON list for a given ?target= path (CORS-enabled)
+// POST /send        — discover endpoint on target URL and send a webmention
+// GET  /send        — describe the send endpoint
 
 export interface Env {
   DB: D1Database;
@@ -195,6 +197,116 @@ async function handleGetMentions(url: URL, env: Env): Promise<Response> {
   });
 }
 
+/**
+ * Discover the webmention endpoint for a given URL.
+ * Checks the Link response header first, then falls back to parsing the HTML body.
+ * Returns the absolute endpoint URL, or null if none is found.
+ */
+async function discoverEndpoint(targetUrl: string): Promise<string | null> {
+  const res = await fetch(targetUrl, {
+    headers: { Accept: "text/html" },
+    redirect: "follow",
+  });
+
+  // 1. Check Link header: Link: <https://example.com/webmention>; rel="webmention"
+  const linkHeader = res.headers.get("Link") ?? "";
+  for (const part of linkHeader.split(",")) {
+    if (/rel=["']?webmention["']?/i.test(part)) {
+      const match = part.match(/<([^>]+)>/);
+      if (match) return new URL(match[1], targetUrl).toString();
+    }
+  }
+
+  // 2. Check HTML body for <link rel="webmention" href="...">
+  const html = await res.text();
+  const patterns = [
+    /<link[^>]+rel=["']webmention["'][^>]+href=["']([^"']+)["']/i,
+    /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']webmention["']/i,
+    /<a[^>]+rel=["']webmention["'][^>]+href=["']([^"']+)["']/i,
+    /<a[^>]+href=["']([^"']+)["'][^>]+rel=["']webmention["']/i,
+  ];
+  for (const re of patterns) {
+    const match = html.match(re);
+    if (match) return new URL(match[1], targetUrl).toString();
+  }
+
+  return null;
+}
+
+async function handleSend(request: Request): Promise<Response> {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/x-www-form-urlencoded")) {
+    return new Response("Content-Type must be application/x-www-form-urlencoded", {
+      status: 400,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  const body = await request.formData();
+  const source = body.get("source");
+  const target = body.get("target");
+
+  if (typeof source !== "string" || typeof target !== "string" || !source || !target) {
+    return new Response("source and target are required", {
+      status: 400,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  try {
+    new URL(source);
+    new URL(target);
+  } catch {
+    return new Response("source and target must be valid URLs", {
+      status: 400,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  // Discover webmention endpoint on the target page
+  let endpoint: string | null;
+  try {
+    endpoint = await discoverEndpoint(target);
+  } catch (e) {
+    console.error("Endpoint discovery failed:", e);
+    return new Response(`Could not fetch target URL: ${String(e)}`, {
+      status: 422,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  if (!endpoint) {
+    return new Response("No webmention endpoint found at target URL", {
+      status: 400,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  // Send the webmention
+  let sendRes: Response;
+  try {
+    sendRes = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ source, target }).toString(),
+    });
+  } catch (e) {
+    console.error("Webmention send failed:", e);
+    return new Response(`Failed to reach webmention endpoint: ${String(e)}`, {
+      status: 502,
+      headers: WRITE_CORS_HEADERS,
+    });
+  }
+
+  return new Response(
+    JSON.stringify({ endpoint, status: sendRes.status, ok: sendRes.ok }),
+    {
+      status: sendRes.ok ? 202 : 502,
+      headers: { "Content-Type": "application/json", ...WRITE_CORS_HEADERS },
+    }
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -220,6 +332,19 @@ export default {
     // GET /mentions?target=/posts/slug/ — return JSON for client-side rendering
     if (request.method === "GET" && url.pathname === "/mentions") {
       return handleGetMentions(url, env);
+    }
+
+    // POST /send — discover endpoint on target and send a webmention
+    if (request.method === "POST" && url.pathname === "/send") {
+      return handleSend(request);
+    }
+
+    // GET /send — describe the send endpoint
+    if (request.method === "GET" && url.pathname === "/send") {
+      return new Response(
+        "Webmention sender. POST with source and target to discover the endpoint and send a webmention.",
+        { status: 200, headers: { Allow: "POST, GET", ...READ_CORS_HEADERS } }
+      );
     }
 
     return new Response("Not Found", { status: 404, headers: READ_CORS_HEADERS });

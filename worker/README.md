@@ -11,6 +11,8 @@ A standalone Cloudflare Worker that receives and serves webmentions.
 | `POST` | `/webmention` | Receive a webmention (`source` + `target` form fields) |
 | `GET`  | `/webmention` | Describes the endpoint |
 | `GET`  | `/mentions?target=/posts/slug/` | Returns stored mentions as JSON |
+| `POST` | `/send` | Discover the webmention endpoint on `target` and send a mention from `source` |
+| `GET`  | `/send` | Describes the send endpoint |
 
 ---
 
@@ -102,6 +104,18 @@ Fetch mentions:
 
 ```bash
 curl "http://localhost:8787/mentions?target=/posts/hello-world/"
+```
+
+Send a webmention to another site (worker discovers their endpoint automatically):
+
+```bash
+curl -X POST http://localhost:8787/send \
+  -d "source=https://yourblog.com/posts/hello-world/&target=https://theirblog.com/their-post/"
+```
+
+Returns JSON like:
+```json
+{ "endpoint": "https://theirblog.com/webmention", "status": 202, "ok": true }
 ```
 
 ---

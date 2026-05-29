@@ -43,6 +43,7 @@ A small **Cloudflare Worker** (in the `worker/` folder) that:
 - **Receives** webmentions via HTTP POST
 - **Stores** them in a Cloudflare D1 database (serverless SQLite)
 - **Serves** them back as JSON so the blog can display them
+- **Sends** webmentions to other sites — give it a source and target URL, it discovers the target's endpoint and pings it automatically
 
 When someone sends a webmention to your post, it looks like this:
 
