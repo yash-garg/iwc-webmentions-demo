@@ -1,7 +1,5 @@
 # Webmentions Worker
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yash-garg/iwc-webmentions-demo)
-
 A standalone Cloudflare Worker that receives and serves webmentions.
 
 ## Endpoints
