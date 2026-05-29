@@ -8,13 +8,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro build && astro preview",
+    "preview": "astro preview",
     "astro": "astro",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "astro build && wrangler pages deploy dist",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.5.1",
     "astro": "^6.3.3"
   },
   "devDependencies": {
