@@ -33,7 +33,7 @@ This project is a self-hosted webmention system built entirely on free Cloudflar
 A simple Astro-powered blog deployed to **Cloudflare Pages**. Every blog post includes a hidden HTML tag that advertises a webmention endpoint:
 
 ```html
-<link rel="webmention" href="https://your-worker.workers.dev/webmention" />
+<link rel="webmention" href="https://webmentions.rexx.workers.dev/webmention" />
 ```
 
 This tag is invisible to readers but tells other sites and tools: _"send webmentions here."_
@@ -89,16 +89,13 @@ webmentions-demo/
 
 ### Deploy the Worker first
 See [`worker/README.md`](./worker/README.md) for step-by-step instructions.
-You'll get a URL like `https://webmentions-worker.yourname.workers.dev`.
+The worker for this demo is live at `https://webmentions.rexx.workers.dev`.
 
 ### Deploy the Blog
-Set the `PUBLIC_WEBMENTION_ENDPOINT` environment variable to your worker URL, then:
 
 ```bash
 pnpm deploy
 ```
-
-Or connect the repo to **Cloudflare Pages** in the dashboard and set the env variable there.
 
 ---
 
