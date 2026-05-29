@@ -1,5 +1,7 @@
 # Webmentions Demo
 
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yash-garg/iwc-webmentions-demo)
+
 A working demonstration of [Webmention](https://www.w3.org/TR/webmention/) — a small open web standard that lets websites talk to each other when one links to another.
 
 ---
