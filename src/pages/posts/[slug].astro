@@ -17,7 +17,7 @@ const { slug } = Astro.params;
 const targetPath = `/posts/${slug}/`;
 
 const wmEndpoint = "https://webmentions.rexx.workers.dev";
-const targetUrl = `${import.meta.env.SITE ?? ""}${targetPath}`;
+const targetUrl = new URL(targetPath, Astro.site).toString();
 ---
 
 <Layout title={post.data.title}>
