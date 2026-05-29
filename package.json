@@ -1,26 +1,19 @@
 {
-  "name": "webmentions-demo",
+  "name": "webmentions-worker",
   "type": "module",
   "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "deploy": "astro build && wrangler pages deploy dist --project-name iwc-webmentions-demo",
-    "deploy:worker": "wrangler deploy",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:site": "pnpm --filter site build && wrangler pages deploy site/dist --project-name iwc-webmentions-demo",
+    "db:migrate:local": "wrangler d1 migrations apply webmentions --local",
+    "db:migrate:remote": "wrangler d1 migrations apply webmentions --remote",
     "cf-typegen": "wrangler types"
   },
-  "dependencies": {
-    "astro": "^6.3.3"
-  },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250525.0",
+    "typescript": "^6.0.3",
     "wrangler": "^4.92.0"
-  },
-  "overrides": {
-    "vite": "^7"
   }
 }

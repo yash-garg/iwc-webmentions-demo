@@ -2,7 +2,7 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["global_fetch_strictly_public"],
   "name": "webmentions",
-  "main": "worker/src/index.ts",
+  "main": "src/index.ts",
   "observability": {
     "enabled": true
   },
@@ -11,7 +11,7 @@
       "binding": "DB",
       "database_name": "webmentions",
       "database_id": "ecaa9527-34ac-4275-bfca-70c29b743925",
-      "migrations_dir": "./worker/migrations"
+      "migrations_dir": "./migrations"
     }
   ]
 }
