@@ -39,7 +39,7 @@ A simple Astro-powered blog deployed to **Cloudflare Pages**. Every blog post in
 This tag is invisible to readers but tells other sites and tools: _"send webmentions here."_
 
 ### 2. The Webmention Worker
-A small **Cloudflare Worker** (in the `worker/` folder) that:
+A small **Cloudflare Worker** (at the repo root) that:
 - **Receives** webmentions via HTTP POST
 - **Stores** them in a Cloudflare D1 database (serverless SQLite)
 - **Serves** them back as JSON so the blog can display them
@@ -73,29 +73,42 @@ The worker validates it, stores it, and redirects the browser to show the update
 
 ```
 webmentions-demo/
-├── src/              # Astro static site (blog)
-│   ├── content/posts/    # Markdown blog posts
-│   ├── layouts/          # Shared HTML layout
-│   └── pages/            # Blog pages + mentions viewer
-├── worker/           # Standalone Cloudflare Worker
-│   ├── src/index.ts      # Webmention receiver + JSON API
-│   ├── migrations/       # Database schema
-│   └── README.md         # Worker deploy instructions
-└── README.md         # This file
+├── src/index.ts      # Cloudflare Worker (webmention receiver + JSON API)
+├── migrations/       # D1 database schema
+├── wrangler.jsonc    # Worker config
+├── site/             # Astro static site (blog)
+│   ├── src/
+│   │   ├── content/posts/    # Markdown blog posts
+│   │   ├── layouts/          # Shared HTML layout
+│   │   └── pages/            # Blog pages + mentions viewer
+│   └── astro.config.mjs
+└── README.md
 ```
 
 ---
 
 ## Deploying
 
-### Deploy the Worker first
-See [`worker/README.md`](./worker/README.md) for step-by-step instructions.
-The worker for this demo is live at `https://webmentions.rexx.workers.dev`.
-
-### Deploy the Blog
+### Deploy the Worker
 
 ```bash
+# 1. Create D1 database (first time only)
+wrangler d1 create webmentions
+# Paste the database_id into wrangler.jsonc
+
+# 2. Run migrations
+wrangler d1 migrations apply webmentions --remote
+
+# 3. Deploy
 pnpm deploy
+```
+
+The worker for this demo is live at `https://webmentions.rexx.workers.dev`.
+
+### Deploy the Blog (Cloudflare Pages)
+
+```bash
+pnpm deploy:site
 ```
 
 ---
