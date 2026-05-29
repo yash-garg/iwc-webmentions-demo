@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "astro build && wrangler pages deploy dist",
+    "deploy": "astro build && wrangler pages deploy dist --project-name iwc-webmentions-demo",
+    "deploy:worker": "wrangler deploy",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
